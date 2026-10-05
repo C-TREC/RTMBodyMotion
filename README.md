@@ -24,7 +24,7 @@ RTM 車輛搖晃 JS 模組 / RTM車両動揺JSモジュール / Vehicle body-mot
 | 1.7.10 | Forge 1.7.10 | RealTrainMod KaizPatchX |
 | 1.21.1 | NeoForge／Fabric | RTMU 1.0.19 |
 
-版本差異由 `RTMBodyMotionAdapter.js` 自動判斷處理。RTMU 1.21.1 已依 v1.0.19 原始碼對照 API，尚未在遊戲內實車驗證；更舊的 RTMU（例如 1.0.4）沒有實體查詢 API，乘客載重效果會自動停用，其他晃動不受影響。
+版本差異由 `RTMBodyMotionAdapter.js` 自動判斷處理。RTMU 1.21.1 已在遊戲內實測通過；更舊的 RTMU（例如 1.0.4）沒有實體查詢 API，乘客載重效果會自動停用，其他晃動不受影響。
 
 ### 檔案
 
@@ -67,7 +67,7 @@ RealTrainModの車両の車体描画にサスペンションの揺れを加え�
 | 1.7.10 | Forge 1.7.10 | RealTrainMod KaizPatchX |
 | 1.21.1 | NeoForge／Fabric | RTMU 1.0.19 |
 
-バージョン差は `RTMBodyMotionAdapter.js` が自動で判別して吸収します。RTMU 1.21.1 は v1.0.19 のソースコードでAPIを照合済みですが、ゲーム内での実車検証はまだです。古いRTMU（1.0.4など）はエンティティ取得APIがないため乗客荷重効果のみ自動で無効になり、他の揺れには影響しません。
+バージョン差は `RTMBodyMotionAdapter.js` が自動で判別して吸収します。RTMU 1.21.1 はゲーム内での実機テストに合格しています。古いRTMU（1.0.4など）はエンティティ取得APIがないため乗客荷重効果のみ自動で無効になり、他の揺れには影響しません。
 
 ### ファイル
 
@@ -110,7 +110,7 @@ Adds suspension motion to how RealTrainMod train bodies are rendered: outward le
 | 1.7.10 | Forge 1.7.10 | RealTrainMod KaizPatchX |
 | 1.21.1 | NeoForge / Fabric | RTMU 1.0.19 |
 
-`RTMBodyMotionAdapter.js` detects the platform and absorbs the differences automatically. RTMU 1.21.1 support was checked against the v1.0.19 source code but has not yet been verified in game. Older RTMU builds (e.g. 1.0.4) lack the entity-query API, so only the passenger-load effect is disabled there; all other motion still works.
+`RTMBodyMotionAdapter.js` detects the platform and absorbs the differences automatically. RTMU 1.21.1 has passed in-game testing. Older RTMU builds (e.g. 1.0.4) lack the entity-query API, so only the passenger-load effect is disabled there; all other motion still works.
 
 ### Files
 
