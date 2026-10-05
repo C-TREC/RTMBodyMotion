@@ -30,16 +30,17 @@ RTM 車輛搖晃 JS 模組 / RTM車両動揺JSモジュール / Vehicle body-mot
 
 | 檔案 | 內容 |
 |---|---|
-| `scripts/RTMBodyMotion.js` | 晃動模組本體 |
-| `scripts/RTMBodyMotionAdapter.js` | 平台適配器（由模組自動載入） |
-| `examples/Render_script_example.js` | 描畫腳本範例：完整的 `MOTION_TUNING` 與套用方式 |
+| `assets/minecraft/scripts/RTMBodyMotion.js` | 晃動模組本體 |
+| `assets/minecraft/scripts/RTMBodyMotionAdapter.js` | 平台適配器（由模組自動載入） |
+| `サンプル_Example/Render_script_example.js` | 最小可用的描畫腳本範例 |
+| `サンプル_Example/全パラメータ参考_MOTION_TUNING_FullReference.js` | 全部參數的完整參考（三語說明與預設值） |
 | `導入説明_InstallationGuide.txt` | 安裝與調校說明（中／日／英） |
-| `LICENSE.txt` | 授權條款（中／日／英） |
+| `ライセンス_License.txt` | 授權條款（中／日／英） |
 
 ### 快速開始
 
-1. 把 `scripts/` 的兩個檔案複製到列車包的 `assets/minecraft/scripts/`。
-2. 在描畫腳本載入模組，並在 `render()` 裡呼叫 `RTMBodyMotion.applyPose(entity, par3)`（見 `examples/`）。
+1. 把 `assets/minecraft/scripts/` 的兩個檔案複製到列車包的 `assets/minecraft/scripts/`。
+2. 在描畫腳本載入模組，並在 `render()` 裡呼叫 `RTMBodyMotion.applyPose(entity, par3)`（見 `サンプル_Example/`）。
 3. 要調整效果時定義 `MOTION_TUNING`，只寫要改的項目；未寫的項目使用預設值。
 
 詳細步驟見 `導入説明_InstallationGuide.txt`。
@@ -50,7 +51,7 @@ RTM 車輛搖晃 JS 模組 / RTM車両動揺JSモジュール / Vehicle body-mot
 
 > 車體晃動：使用了 C-TREC & 月島重工 製作的晃動 JS（RTMBodyMotion v1.0）
 
-全文見 [`LICENSE.txt`](LICENSE.txt)。
+全文見 [`ライセンス_License.txt`](ライセンス_License.txt)。
 
 ---
 
@@ -72,16 +73,17 @@ RealTrainModの車両の車体描画にサスペンションの揺れを加え�
 
 | ファイル | 内容 |
 |---|---|
-| `scripts/RTMBodyMotion.js` | 動揺モジュール本体 |
-| `scripts/RTMBodyMotionAdapter.js` | プラットフォームアダプター（モジュールが自動で読み込み） |
-| `examples/Render_script_example.js` | 描画スクリプト例：全項目の `MOTION_TUNING` と適用方法 |
+| `assets/minecraft/scripts/RTMBodyMotion.js` | 動揺モジュール本体 |
+| `assets/minecraft/scripts/RTMBodyMotionAdapter.js` | プラットフォームアダプター（モジュールが自動で読み込み） |
+| `サンプル_Example/Render_script_example.js` | 最小構成の描画スクリプト例 |
+| `サンプル_Example/全パラメータ参考_MOTION_TUNING_FullReference.js` | 全パラメータの完全な参考（三言語の説明と既定値） |
 | `導入説明_InstallationGuide.txt` | 導入・調整説明（中／日／英） |
-| `LICENSE.txt` | ライセンス（中／日／英） |
+| `ライセンス_License.txt` | ライセンス（中／日／英） |
 
 ### クイックスタート
 
-1. `scripts/` の2ファイルを車両パックの `assets/minecraft/scripts/` にコピーします。
-2. 描画スクリプトでモジュールを読み込み、`render()` 内で `RTMBodyMotion.applyPose(entity, par3)` を呼びます（`examples/` 参照）。
+1. `assets/minecraft/scripts/` の2ファイルを車両パックの `assets/minecraft/scripts/` にコピーします。
+2. 描画スクリプトでモジュールを読み込み、`render()` 内で `RTMBodyMotion.applyPose(entity, par3)` を呼びます（`サンプル_Example/` 参照）。
 3. 調整する場合は `MOTION_TUNING` を定義し、変更する項目だけ書きます。書かない項目は既定値を使います。
 
 詳しくは `導入説明_InstallationGuide.txt` を参照してください。
@@ -92,7 +94,7 @@ RealTrainModの車両の車体描画にサスペンションの揺れを加え�
 
 > 車体動揺：C-TREC & 月島重工 制作の動揺JS（RTMBodyMotion v1.0）を使用
 
-全文は [`LICENSE.txt`](LICENSE.txt) を参照してください。
+全文は [`ライセンス_License.txt`](ライセンス_License.txt) を参照してください。
 
 ---
 
@@ -114,16 +116,17 @@ Adds suspension motion to how RealTrainMod train bodies are rendered: outward le
 
 | File | Contents |
 |---|---|
-| `scripts/RTMBodyMotion.js` | The body-motion module |
-| `scripts/RTMBodyMotionAdapter.js` | Platform adapter (loaded automatically by the module) |
-| `examples/Render_script_example.js` | Render-script example: full `MOTION_TUNING` and how to apply the pose |
+| `assets/minecraft/scripts/RTMBodyMotion.js` | The body-motion module |
+| `assets/minecraft/scripts/RTMBodyMotionAdapter.js` | Platform adapter (loaded automatically by the module) |
+| `サンプル_Example/Render_script_example.js` | Minimal working render-script example |
+| `サンプル_Example/全パラメータ参考_MOTION_TUNING_FullReference.js` | Complete parameter reference (trilingual notes and defaults) |
 | `導入説明_InstallationGuide.txt` | Installation and tuning guide (Chinese / Japanese / English) |
-| `LICENSE.txt` | License (Chinese / Japanese / English) |
+| `ライセンス_License.txt` | License (Chinese / Japanese / English) |
 
 ### Quick start
 
-1. Copy the two files in `scripts/` into your vehicle pack's `assets/minecraft/scripts/`.
-2. Load the module in your render script and call `RTMBodyMotion.applyPose(entity, par3)` inside `render()` (see `examples/`).
+1. Copy the two files in `assets/minecraft/scripts/` into your vehicle pack's `assets/minecraft/scripts/`.
+2. Load the module in your render script and call `RTMBodyMotion.applyPose(entity, par3)` inside `render()` (see `サンプル_Example/`).
 3. To tune the effect, define `MOTION_TUNING` with only the entries you change; everything else uses the defaults.
 
 See `導入説明_InstallationGuide.txt` for details.
@@ -134,4 +137,4 @@ Free to use, modify and redistribute, including bundling with your own vehicle p
 
 > Body motion: uses the body-motion JS (RTMBodyMotion v1.0) made by C-TREC & 月島重工
 
-See [`LICENSE.txt`](LICENSE.txt) for the full text.
+See [`ライセンス_License.txt`](ライセンス_License.txt) for the full text.

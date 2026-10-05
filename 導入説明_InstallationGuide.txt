@@ -32,18 +32,24 @@ Supports 1.7.10 (KaizPatchX), 1.12.2 (RTM 2.4.x) and RTMU 1.21.1 (NeoForge/Fabri
   RTMBodyMotion.js         … 搖晃模組本體（彎道、直線、道岔、制動、乘客載重、插值與描畫）
   RTMBodyMotionAdapter.js  … 平台適配器（處理三個版本的 API 差異；由 RTMBodyMotion.js 自動載入）
 兩個檔案都不含任何車種專用名稱，可直接用於任何列車。
+另附「サンプル_Example/Render_script_example.js」：最小可用的描畫腳本範例（不需放進列車包）。
+另附「サンプル_Example/全パラメータ参考_MOTION_TUNING_FullReference.js」：全部 81 個參數的完整參考，數值即模組預設值（不需放進列車包）。
 
 【日本語】
 次の2ファイルを対象の車両パックの assets/minecraft/scripts/ にコピーします。
   RTMBodyMotion.js         … 動揺モジュール本体（曲線・直線・分岐器・制動・乗客荷重・補間と描画）
   RTMBodyMotionAdapter.js  … プラットフォームアダプター（3バージョンのAPI差を吸収。RTMBodyMotion.jsが自動で読み込みます）
 どちらも車種固有の名前を含まないため、どの車両にもそのまま使えます。
+「サンプル_Example/Render_script_example.js」も同梱：最小構成の描画スクリプト例です（車両パックに入れる必要はありません）。
+「サンプル_Example/全パラメータ参考_MOTION_TUNING_FullReference.js」も同梱：全81パラメータの完全な参考で、値はモジュールの既定値です（車両パックに入れる必要はありません）。
 
 【English】
 Copy these two files into the target pack's assets/minecraft/scripts/:
   RTMBodyMotion.js         … the motion module (curves, straight track, turnouts, braking, passenger load, interpolation and rendering)
   RTMBodyMotionAdapter.js  … the platform adapter (absorbs API differences between the three platforms; loaded automatically by RTMBodyMotion.js)
 Neither file contains train-specific names, so they work with any train.
+Also included: "サンプル_Example/Render_script_example.js", a minimal working render script example (not needed inside your pack).
+Also included: "サンプル_Example/全パラメータ参考_MOTION_TUNING_FullReference.js", a complete reference of all 81 parameters whose values are the module defaults (not needed inside your pack).
 
 ======================================================================
 3. 安裝步驟 / 導入手順 / Installation steps
@@ -176,7 +182,8 @@ Neither file contains train-specific names, so they work with any train.
   stop      制動與停車衝動
   load      乘客載重懸吊（上下車、車內走動；NPC 可計入）
   debug     除錯（平常保持預設值）
-10010 型的描畫腳本保留了一份完整的 MOTION_TUNING，可當作範例。
+「サンプル_Example/Render_script_example.js」是可直接修改使用的最小描畫腳本範例。
+全部參數的完整一覽（含三語說明與預設值）見「サンプル_Example/全パラメータ参考_MOTION_TUNING_FullReference.js」，可整段或部分複製到 MOTION_TUNING。
 
 直線晃動倍率可在遊戲中以 DataMap 調整（double）：
     entity.getResourceState().getDataMap().setDouble("BodyMotionStraightAdjust", 0.3, 1);
@@ -199,7 +206,8 @@ Neither file contains train-specific names, so they work with any train.
   stop      制動・停止衝動
   load      乗客荷重サスペンション（乗降・車内移動。NPCも計上可能）
   debug     デバッグ（通常は既定値のまま）
-10010形の描画スクリプトには完全なMOTION_TUNINGがあり、例として使えます。
+「サンプル_Example/Render_script_example.js」は、そのまま改変して使える最小の描画スクリプト例です。
+全パラメータの一覧（三言語の説明と既定値つき）は「サンプル_Example/全パラメータ参考_MOTION_TUNING_FullReference.js」にあり、丸ごとまたは一部をMOTION_TUNINGへコピーできます。
 
 直線動揺の倍率はゲーム内でDataMap（double）から調整できます。
     entity.getResourceState().getDataMap().setDouble("BodyMotionStraightAdjust", 0.3, 1);
@@ -222,7 +230,8 @@ Every parameter has a trilingual comment in MOTION_DEFAULT_TUNING. Block purpose
   stop      braking and stop shock
   load      passenger-load suspension (boarding/alighting, walking inside; NPCs can be counted)
   debug     diagnostics (normally leave as is)
-The 10010 series render script keeps a complete MOTION_TUNING you can use as an example.
+"サンプル_Example/Render_script_example.js" is a minimal render script you can adapt directly.
+The complete list of parameters (with trilingual notes and defaults) is in "サンプル_Example/全パラメータ参考_MOTION_TUNING_FullReference.js"; copy all or part of it into MOTION_TUNING.
 
 The straight-motion scale can be adjusted in game through the DataMap (double):
     entity.getResourceState().getDataMap().setDouble("BodyMotionStraightAdjust", 0.3, 1);
