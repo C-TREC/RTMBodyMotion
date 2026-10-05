@@ -45,6 +45,17 @@ RTM 車輛搖晃 JS 模組 / RTM車両動揺JSモジュール / Vehicle body-mot
 
 詳細步驟見 `導入説明_InstallationGuide.txt`。
 
+### 晃動預覽器
+
+[**RTMBodyMotion Previewer**](https://github.com/C-TREC/RTMBodyMotionPreviewer)：不用進遊戲，就能預覽車體晃動並調校參數，省去反覆進遊戲確認的麻煩。
+
+- 直接執行原封不動的 `RTMBodyMotion.js`，以 RTM 2.4.24（1.12.2）的介面模擬遊戲環境；已與遊戲的腳本引擎 Nashorn 逐格比對，結果一致
+- 情境：直線（DataMap 倍率）、彎道／S 彎、道岔（直進／分歧）、制動停車（B1～EB）、乘客上下車
+- 可讀入描畫腳本的 `MOTION_TUNING`，調好後匯出貼回；也能讀入自己的車輛 JSON／MQO／OBJ
+- 支援 Windows x64、macOS（Apple Silicon／Intel）、Linux x64
+
+下載：[最新版本](https://github.com/C-TREC/RTMBodyMotionPreviewer/releases/latest)
+
 ### 授權
 
 可自由使用、修改與再發布（包含放入自己的列車包）。使用本模組（含修改版）的列車，須在該列車的 readme 標明：
@@ -88,6 +99,17 @@ RealTrainModの車両の車体描画にサスペンションの揺れを加え�
 
 詳しくは `導入説明_InstallationGuide.txt` を参照してください。
 
+### 動揺プレビューア
+
+[**RTMBodyMotion Previewer**](https://github.com/C-TREC/RTMBodyMotionPreviewer)：ゲームを起動せずに車体動揺をプレビューしてパラメータを調整できます。何度もゲームに入って確認する手間が省けます。
+
+- `RTMBodyMotion.js` の原コードをそのまま実行し、RTM 2.4.24（1.12.2）のインターフェースでゲーム環境を再現します。ゲームのスクリプトエンジンNashornと全フレーム照合して一致を確認済みです
+- シナリオ：直線（DataMap倍率）、曲線／S字、分岐器（直進／分岐）、制動・停車（B1～EB）、乗客の乗降
+- 描画スクリプトの `MOTION_TUNING` を読み込み、調整後に書き出して貼り戻せます。自作車両のJSON／MQO／OBJも読み込めます
+- Windows x64、macOS（Apple Silicon／Intel）、Linux x64 対応
+
+ダウンロード：[最新版](https://github.com/C-TREC/RTMBodyMotionPreviewer/releases/latest)
+
 ### ライセンス
 
 自由に使用・改変・再配布できます（自作の車両パックへの同梱を含む）。本モジュール（改変版を含む）を使用する車両は、readmeに次のように明記してください。
@@ -130,6 +152,17 @@ Adds suspension motion to how RealTrainMod train bodies are rendered: outward le
 3. To tune the effect, define `MOTION_TUNING` with only the entries you change; everything else uses the defaults.
 
 See `導入説明_InstallationGuide.txt` for details.
+
+### Previewer
+
+[**RTMBodyMotion Previewer**](https://github.com/C-TREC/RTMBodyMotionPreviewer) lets you preview the body motion and tune parameters without launching the game, so you no longer have to keep re-entering the game to check each change.
+
+- Runs `RTMBodyMotion.js` unmodified in an emulated RTM 2.4.24 (1.12.2) environment; verified frame by frame against Nashorn, the game's script engine
+- Scenarios: straight track (DataMap scale), curves / S-curves, turnouts (straight / diverging), braking and stop (B1 to EB), passengers boarding and alighting
+- Loads `MOTION_TUNING` from your render script and exports the tuned result to paste back; also loads your own vehicle JSON / MQO / OBJ
+- Windows x64, macOS (Apple Silicon / Intel) and Linux x64
+
+Download: [latest release](https://github.com/C-TREC/RTMBodyMotionPreviewer/releases/latest)
 
 ### License
 
