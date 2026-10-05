@@ -1,0 +1,36 @@
+RTM 車輛搖晃 JS 模組 v1.0（RTMBodyMotion）— 授權條款
+RTM車両動揺JSモジュール v1.0（RTMBodyMotion）— ライセンス
+RTM Vehicle Body-Motion JS Module v1.0 (RTMBodyMotion) — License
+
+製作 / 制作 / Made by：C-TREC & 月島重工
+
+----------------------------------------------------------------------
+【中文】
+1. 本模組（RTMBodyMotion.js、RTMBodyMotionAdapter.js 及隨附範例）可自由使用、修改與再發布，
+   包含放入自己的列車包中一同發布。
+2. 使用條件：使用本模組（含修改後的版本）的列車，須在該列車的 readme 中標明
+   「使用了 C-TREC & 月島重工 製作的晃動 JS」。
+3. 本模組按現狀提供，製作者不對使用結果負擔任何保證或責任。
+
+----------------------------------------------------------------------
+【日本語】
+1. 本モジュール（RTMBodyMotion.js、RTMBodyMotionAdapter.js および同梱サンプル）は、自由に使用・改変・再配布できます。
+   自作の車両パックに同梱して配布することも可能です。
+2. 使用条件：本モジュール（改変版を含む）を使用する車両は、その車両のreadmeに
+   「C-TREC & 月島重工 制作の動揺JSを使用」と明記してください。
+3. 本モジュールは現状のまま提供され、制作者は使用結果について一切の保証・責任を負いません。
+
+----------------------------------------------------------------------
+【English】
+1. This module (RTMBodyMotion.js, RTMBodyMotionAdapter.js and the bundled example) may be freely used,
+   modified and redistributed, including bundling it with your own vehicle pack.
+2. Condition: any vehicle that uses this module (including modified versions) must state in that vehicle's readme
+   that it uses the body-motion JS made by C-TREC & 月島重工.
+3. This module is provided as is, without any warranty; the makers accept no liability for its use.
+
+----------------------------------------------------------------------
+readme 署名範例（可直接複製） / readme記載例（そのままコピー可） / Example readme credit (copy as is)
+
+  車體晃動：使用了 C-TREC & 月島重工 製作的晃動 JS（RTMBodyMotion v1.0）
+  車体動揺：C-TREC & 月島重工 制作の動揺JS（RTMBodyMotion v1.0）を使用
+  Body motion: uses the body-motion JS (RTMBodyMotion v1.0) made by C-TREC & 月島重工

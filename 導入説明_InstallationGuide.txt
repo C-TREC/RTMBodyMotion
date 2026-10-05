@@ -1,0 +1,298 @@
+車輛搖晃 JS 模組 v1.0 安裝說明
+車両動揺JSモジュール v1.0 導入説明
+Vehicle Body-Motion JS Module v1.0 — Installation Guide
+
+======================================================================
+1. 概要 / 概要 / Overview
+======================================================================
+【中文】
+本模組讓 RTM 列車的車體在描畫時產生懸吊晃動：彎道外傾與回彈、直線軌道不整晃動、道岔衝擊、
+急制動與停車衝動、乘客上下車與走動造成的載重傾斜。只改變車體的視覺描畫，不影響列車實體、
+碰撞箱、座位、轉向架或玩家視角。
+支援 1.7.10（KaizPatchX）、1.12.2（RTM 2.4.x）、RTMU 1.21.1（NeoForge／Fabric）。
+
+【日本語】
+本モジュールはRTM車両の車体描画にサスペンションの揺れを加えます。曲線での外傾と揺り戻し、
+直線の軌道狂いによる揺れ、分岐器の衝撃、急制動・停止時の衝動、乗客の乗降や車内移動による荷重傾斜に対応します。
+車体の見た目だけを変え、車両エンティティ・当たり判定・座席・台車・プレイヤー視点には影響しません。
+1.7.10（KaizPatchX）、1.12.2（RTM 2.4.x）、RTMU 1.21.1（NeoForge／Fabric）に対応します。
+
+【English】
+This module adds suspension motion to how an RTM train body is rendered: outward lean and rebound in curves,
+random motion from track irregularity on straight track, turnout impacts, emergency-braking and stop shock,
+and load tilt when passengers board, alight or walk around. Only the body's appearance changes; the train entity,
+collision box, seats, bogies and the player's view are not affected.
+Supports 1.7.10 (KaizPatchX), 1.12.2 (RTM 2.4.x) and RTMU 1.21.1 (NeoForge/Fabric).
+
+======================================================================
+2. 檔案 / ファイル / Files
+======================================================================
+【中文】
+把下列兩個檔案複製到目標列車包的 assets/minecraft/scripts/：
+  RTMBodyMotion.js         … 搖晃模組本體（彎道、直線、道岔、制動、乘客載重、插值與描畫）
+  RTMBodyMotionAdapter.js  … 平台適配器（處理三個版本的 API 差異；由 RTMBodyMotion.js 自動載入）
+兩個檔案都不含任何車種專用名稱，可直接用於任何列車。
+
+【日本語】
+次の2ファイルを対象の車両パックの assets/minecraft/scripts/ にコピーします。
+  RTMBodyMotion.js         … 動揺モジュール本体（曲線・直線・分岐器・制動・乗客荷重・補間と描画）
+  RTMBodyMotionAdapter.js  … プラットフォームアダプター（3バージョンのAPI差を吸収。RTMBodyMotion.jsが自動で読み込みます）
+どちらも車種固有の名前を含まないため、どの車両にもそのまま使えます。
+
+【English】
+Copy these two files into the target pack's assets/minecraft/scripts/:
+  RTMBodyMotion.js         … the motion module (curves, straight track, turnouts, braking, passenger load, interpolation and rendering)
+  RTMBodyMotionAdapter.js  … the platform adapter (absorbs API differences between the three platforms; loaded automatically by RTMBodyMotion.js)
+Neither file contains train-specific names, so they work with any train.
+
+======================================================================
+3. 安裝步驟 / 導入手順 / Installation steps
+======================================================================
+【中文】
+(1) 在車輛描畫腳本（車輛 JSON 的 rendererPath 所指的檔案）中，importPackage 區塊之後加入一行：
+
+    //include <scripts/RTMBodyMotion.js>
+
+    只需要這一行；RTMBodyMotion.js 會自動載入 RTMBodyMotionAdapter.js，不必另外加入。
+    也不需要為本模組另外 importPackage：模組會自行匯入它用到的 Java 套件
+    （org.lwjgl.opengl、jp.ngt.ngtlib.util、jp.ngt.ngtlib.io、jp.ngt.rtm、jp.ngt.rtm.rail），
+    車輛腳本已經匯入的會自動略過。車輛自己的描畫程式碼用到的套件，照原本方式匯入即可。
+    若要自訂參數（見第 4 節），建議把 MOTION_TUNING 寫在這一行之前；寫在之後也能正常讀取。
+
+(2) 在 render(entity, pass, par3) 中，於 glPushMatrix() 之後、描畫車體零件之前呼叫 applyPose：
+
+    function render(entity, pass, par3) {
+        GL11.glPushMatrix();
+        RTMBodyMotion.applyPose(entity, par3);   // 車體開始晃動
+        // …… 原本描畫車體零件的程式碼（body.render(renderer) 等）……
+        GL11.glPopMatrix();
+    }
+
+    放在 glPushMatrix()／glPopMatrix() 之間的零件都會一起晃動；轉向架由 RTM 另外描畫，不受影響。
+    若有零件不想晃動（例如想固定在軌道上的東西），請在 glPopMatrix() 之後再描畫它。
+
+(3)（建議）若車輛有發光 Pass（pass > 1），用下列寫法包住發光描畫，可避免發光貼圖與一般貼圖在同一面閃爍：
+
+    if (pass > 1) {
+        var emissive = RTMBodyMotion.beginEmissivePass();
+        try {
+            // …… 原本的發光描畫 ……
+        } finally {
+            RTMBodyMotion.endEmissivePass(emissive);
+        }
+    }
+
+(4) 不需要修改伺服器腳本或車輛 JSON。
+
+【日本語】
+(1) 車両描画スクリプト（車両JSONのrendererPathが指すファイル）で、importPackageの後に次の1行を加えます。
+
+    //include <scripts/RTMBodyMotion.js>
+
+    必要なのはこの1行だけです。RTMBodyMotion.jsがRTMBodyMotionAdapter.jsを自動で読み込むため、別途追加は不要です。
+    本モジュールのために別途importPackageする必要もありません。モジュールが使用するJavaパッケージ
+    （org.lwjgl.opengl、jp.ngt.ngtlib.util、jp.ngt.ngtlib.io、jp.ngt.rtm、jp.ngt.rtm.rail）を自前で読み込み、
+    車両スクリプトで読込済みのものは自動で省略します。車両自身の描画コードが使うパッケージは従来どおり読み込んでください。
+    パラメータを変更する場合（第4節）は、MOTION_TUNINGをこの行より前に書くことを推奨します。後に書いても正しく読み込まれます。
+
+(2) render(entity, pass, par3) 内で、glPushMatrix()の後、車体部品を描画する前にapplyPoseを呼びます。
+
+    function render(entity, pass, par3) {
+        GL11.glPushMatrix();
+        RTMBodyMotion.applyPose(entity, par3);   // 車体の動揺を適用
+        // …… 既存の車体部品描画（body.render(renderer) など）……
+        GL11.glPopMatrix();
+    }
+
+    glPushMatrix()／glPopMatrix()の間で描画した部品はすべて一緒に揺れます。台車はRTMが別に描画するため影響しません。
+    揺らしたくない部品は、glPopMatrix()の後に描画してください。
+
+(3)（推奨）発光Pass（pass > 1）がある場合は、次のように発光描画を囲むと、発光テクスチャと通常テクスチャの同一面でのちらつきを防げます。
+
+    if (pass > 1) {
+        var emissive = RTMBodyMotion.beginEmissivePass();
+        try {
+            // …… 既存の発光描画 ……
+        } finally {
+            RTMBodyMotion.endEmissivePass(emissive);
+        }
+    }
+
+(4) サーバースクリプトや車両JSONの変更は不要です。
+
+【English】
+(1) In the vehicle render script (the file named by rendererPath in the vehicle JSON), add this one line after the importPackage block:
+
+    //include <scripts/RTMBodyMotion.js>
+
+    That single line is all you need; RTMBodyMotion.js loads RTMBodyMotionAdapter.js by itself.
+    No extra importPackage is needed for this module either: it imports the Java packages it uses
+    (org.lwjgl.opengl, jp.ngt.ngtlib.util, jp.ngt.ngtlib.io, jp.ngt.rtm, jp.ngt.rtm.rail) by itself
+    and skips any the vehicle script has already imported. Import whatever your own rendering code needs as usual.
+    If you customize parameters (section 4), putting MOTION_TUNING before this line is recommended; placing it after also works.
+
+(2) In render(entity, pass, par3), call applyPose after glPushMatrix() and before rendering the body parts:
+
+    function render(entity, pass, par3) {
+        GL11.glPushMatrix();
+        RTMBodyMotion.applyPose(entity, par3);   // apply body motion
+        // …… your existing body-part rendering (body.render(renderer), etc.) ……
+        GL11.glPopMatrix();
+    }
+
+    Everything rendered between glPushMatrix() and glPopMatrix() moves with the body; bogies are rendered separately by RTM and are unaffected.
+    Render any part that should not move after glPopMatrix().
+
+(3) (Recommended) If the vehicle has an emissive pass (pass > 1), wrap the emissive rendering like this to prevent flicker between emissive and normal textures on the same faces:
+
+    if (pass > 1) {
+        var emissive = RTMBodyMotion.beginEmissivePass();
+        try {
+            // …… your existing emissive rendering ……
+        } finally {
+            RTMBodyMotion.endEmissivePass(emissive);
+        }
+    }
+
+(4) No changes to the server script or vehicle JSON are needed.
+
+======================================================================
+4. 調整參數 / パラメータ調整 / Tuning
+======================================================================
+【中文】
+不寫任何設定也能使用（全部採用預設值）。要調整時，在描畫腳本中定義 MOTION_TUNING，只寫要改的項目：
+
+    var MOTION_TUNING = {
+        curve:    { leanRollDeg: 1.0, rollDamping: 0.12 },
+        straight: { defaultScale: 0.5 },
+        load:     { rollPerPersonDeg: 0.10 }
+    };
+
+未寫的項目自動沿用 RTMBodyMotion.js 開頭 MOTION_DEFAULT_TUNING 的預設值（物件逐項合併，陣列整個取代）。
+每個參數在 MOTION_DEFAULT_TUNING 裡都有三語註解。各區塊用途：
+  curve     彎道晃動與車體懸吊（車體固有頻率與阻尼，彎道、道岔、直線晃動共用）
+  straight  直線晃動（軌道不整）
+  turnout   道岔衝擊（尖軌、轍叉）
+  stop      制動與停車衝動
+  load      乘客載重懸吊（上下車、車內走動；NPC 可計入）
+  debug     除錯（平常保持預設值）
+10010 型的描畫腳本保留了一份完整的 MOTION_TUNING，可當作範例。
+
+直線晃動倍率可在遊戲中以 DataMap 調整（double）：
+    entity.getResourceState().getDataMap().setDouble("BodyMotionStraightAdjust", 0.3, 1);
+最終倍率＝straight.defaultScale＋此值；未設定時視為 0。
+
+【日本語】
+設定を書かなくても使えます（すべて既定値）。調整する場合は描画スクリプトでMOTION_TUNINGを定義し、変更する項目だけ書きます。
+
+    var MOTION_TUNING = {
+        curve:    { leanRollDeg: 1.0, rollDamping: 0.12 },
+        straight: { defaultScale: 0.5 },
+        load:     { rollPerPersonDeg: 0.10 }
+    };
+
+書かない項目はRTMBodyMotion.js冒頭のMOTION_DEFAULT_TUNINGの既定値を使います（オブジェクトは項目ごとにマージ、配列は丸ごと置換）。
+各パラメータにはMOTION_DEFAULT_TUNING内に三言語の注釈があります。各ブロックの用途：
+  curve     曲線動揺と車体サスペンション（車体固有周波数と減衰。曲線・分岐器・直線で共用）
+  straight  直線動揺（軌道狂い）
+  turnout   分岐器衝撃（トングレール・クロッシング）
+  stop      制動・停止衝動
+  load      乗客荷重サスペンション（乗降・車内移動。NPCも計上可能）
+  debug     デバッグ（通常は既定値のまま）
+10010形の描画スクリプトには完全なMOTION_TUNINGがあり、例として使えます。
+
+直線動揺の倍率はゲーム内でDataMap（double）から調整できます。
+    entity.getResourceState().getDataMap().setDouble("BodyMotionStraightAdjust", 0.3, 1);
+最終倍率＝straight.defaultScale＋この値。未設定時は0扱いです。
+
+【English】
+It works with no settings at all (all defaults). To customize, define MOTION_TUNING in the render script with only the entries you change:
+
+    var MOTION_TUNING = {
+        curve:    { leanRollDeg: 1.0, rollDamping: 0.12 },
+        straight: { defaultScale: 0.5 },
+        load:     { rollPerPersonDeg: 0.10 }
+    };
+
+Anything omitted uses the defaults in MOTION_DEFAULT_TUNING at the top of RTMBodyMotion.js (objects merge entry by entry; arrays are replaced whole).
+Every parameter has a trilingual comment in MOTION_DEFAULT_TUNING. Block purposes:
+  curve     curve motion and body suspension (body natural frequency and damping, shared by curve, turnout and straight motion)
+  straight  straight-track motion (track irregularity)
+  turnout   turnout impacts (switch toe, frog crossing)
+  stop      braking and stop shock
+  load      passenger-load suspension (boarding/alighting, walking inside; NPCs can be counted)
+  debug     diagnostics (normally leave as is)
+The 10010 series render script keeps a complete MOTION_TUNING you can use as an example.
+
+The straight-motion scale can be adjusted in game through the DataMap (double):
+    entity.getResourceState().getDataMap().setDouble("BodyMotionStraightAdjust", 0.3, 1);
+Final scale = straight.defaultScale + this value; an unset key counts as 0.
+
+======================================================================
+5. 注意事項 / 注意事項 / Notes
+======================================================================
+【中文】
+・RTM 會把「雙斜線＋include＋空格＋角括號」這段文字當成載入指令展開，連註解裡的也算。
+  請勿在任何 JS 檔的註解或字串中寫出這段文字，否則會被誤展開（同一檔案自我引用時會無限遞迴）。
+・同一個描畫腳本只需 include 一次 RTMBodyMotion.js。
+・每節車各自計算晃動，同一編組的各車不會同步晃動。
+・模組會自行匯入需要的 Java 套件；名稱已存在時略過，所以不會覆蓋車輛腳本原有的匯入。
+・模組使用的全域名稱以 motion、MOTION_、RTMBodyMotion 開頭；請避免在車輛腳本中使用相同名稱。
+
+【日本語】
+・RTMは「スラッシュ2つ＋include＋空白＋山括弧」という文字列を、コメント内であっても読込指示として展開します。
+  どのJSファイルでもコメントや文字列にこの文字列を書かないでください。誤って展開されます（自己参照すると無限再帰になります）。
+・1つの描画スクリプトでRTMBodyMotion.jsをincludeするのは1回だけです。
+・車両ごとに動揺を計算するため、同じ編成の各車は同期して揺れません。
+・モジュールは必要なJavaパッケージを自前で読み込みます。名前が既にある場合は省略するため、車両スクリプト既存の読込を上書きしません。
+・モジュールのグローバル名はmotion、MOTION_、RTMBodyMotionで始まります。車両スクリプトで同じ名前を使わないでください。
+
+【English】
+・RTM expands the text "two slashes + include + space + angle bracket" as a load directive, even inside comments.
+  Never write that text in a comment or string in any JS file, or it will be expanded by mistake (a file that references itself recurses forever).
+・Include RTMBodyMotion.js only once per render script.
+・Motion is computed per car, so cars in the same consist do not sway in lockstep.
+・The module imports the Java packages it needs; names that already exist are skipped, so the vehicle script's own imports are never overridden.
+・The module's global names start with motion, MOTION_ or RTMBodyMotion; avoid using the same names in the vehicle script.
+
+======================================================================
+6. 確認是否正常運作 / 動作確認 / Verifying it works
+======================================================================
+【中文】
+在 MOTION_TUNING 加入 debug: { logPartialTick: true } 後進入遊戲，記錄檔每 5 秒會出現一行 [BodyMotion]：
+  tickSource=entity 且 tickPhase 接近 0 → 時間基準與 RTM 同步，晃動平滑。
+  mode=clock → RTM 沒有傳入有效的 partialTick，模組已自動改用時鐘補間。
+乘客載重可加入 debug: { logLoad: true }，會記錄每次上下車與周圍乘客的判定結果。
+確認完畢請改回 false。
+
+【日本語】
+MOTION_TUNINGに debug: { logPartialTick: true } を加えてゲームに入ると、ログに5秒ごとに [BodyMotion] の行が出ます。
+  tickSource=entity かつ tickPhase が0に近い → 時間基準がRTMと同期し、動揺は滑らかです。
+  mode=clock → RTMが有効なpartialTickを渡していないため、モジュールが自動で時計補間に切り替えています。
+乗客荷重は debug: { logLoad: true } で、乗降のたびに周囲の乗客の判定結果を記録します。
+確認後はfalseに戻してください。
+
+【English】
+Add debug: { logPartialTick: true } to MOTION_TUNING and enter the game; a [BodyMotion] line appears in the log every 5 s:
+  tickSource=entity with tickPhase near 0 → the time base is in step with RTM and motion is smooth.
+  mode=clock → RTM is not passing a valid partialTick, so the module has switched to clock interpolation automatically.
+For passenger load, debug: { logLoad: true } logs each boarding/alighting and the verdict for nearby passengers.
+Set them back to false when done.
+
+======================================================================
+7. 授權與署名 / ライセンスとクレジット / License and credit
+======================================================================
+【中文】
+製作：C-TREC & 月島重工。可自由使用、修改與再發布（含放入自己的列車包）。
+使用條件：使用本模組（含修改版）的列車，須在該列車的 readme 中標明「使用了 C-TREC & 月島重工 製作的晃動 JS」。
+完整條款與署名範例見 ライセンス_License.txt。
+
+【日本語】
+制作：C-TREC & 月島重工。自由に使用・改変・再配布できます（自作の車両パックへの同梱も可）。
+使用条件：本モジュール（改変版を含む）を使用する車両は、その車両のreadmeに「C-TREC & 月島重工 制作の動揺JSを使用」と明記してください。
+全文と記載例は ライセンス_License.txt を参照してください。
+
+【English】
+Made by C-TREC & 月島重工. Free to use, modify and redistribute (including bundling it with your own vehicle pack).
+Condition: any vehicle using this module (including modified versions) must state in its readme that it uses the body-motion JS made by C-TREC & 月島重工.
+See ライセンス_License.txt for the full terms and an example credit line.
