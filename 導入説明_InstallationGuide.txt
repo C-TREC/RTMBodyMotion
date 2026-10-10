@@ -1,6 +1,6 @@
-車輛搖晃 JS 模組 v1.0 安裝說明
-車両動揺JSモジュール v1.0 導入説明
-Vehicle Body-Motion JS Module v1.0 — Installation Guide
+車輛搖晃 JS 模組 v1.1 安裝說明
+車両動揺JSモジュール v1.1 導入説明
+Vehicle Body-Motion JS Module v1.1 — Installation Guide
 
 ======================================================================
 1. 概要 / 概要 / Overview
@@ -88,7 +88,16 @@ Also included: "サンプル_Example/全パラメータ参考_MOTION_TUNING_Full
         }
     }
 
-(4) 不需要修改伺服器腳本或車輛 JSON。
+(4)（有 JSON 行先時建議）RTM 會在描畫腳本之外畫車輛 JSON 的行先（rollsigns），所以行先原本不會跟著晃。
+    在 glPopMatrix() 之前加一行，改由模組在晃動姿態裡畫行先，RTM 就不再畫原本不晃的那份：
+
+        RTMBodyMotion.renderRollsigns(entity, pass);
+        GL11.glPopMatrix();
+
+    行先的位置、UV、貼圖與行先選單都沿用車輛 JSON，不需要修改；沒有行先的車輛呼叫也不影響。
+    RTMU 另含 RTMU 追加的種別幕。若代畫在某個環境無法執行，模組會記錄一次並交回 RTM 照原本方式畫（不晃，但不會消失）。
+
+(5) 不需要修改伺服器腳本或車輛 JSON。
 
 【日本語】
 (1) 車両描画スクリプト（車両JSONのrendererPathが指すファイル）で、importPackageの後に次の1行を加えます。
@@ -124,7 +133,16 @@ Also included: "サンプル_Example/全パラメータ参考_MOTION_TUNING_Full
         }
     }
 
-(4) サーバースクリプトや車両JSONの変更は不要です。
+(4)（JSON行先がある場合は推奨）RTMは車両JSONの行先（rollsigns）を描画スクリプトの外で描くため、行先はそのままでは揺れません。
+    glPopMatrix() の前に1行加えると、モジュールが揺れの姿勢の中で行先を描き、RTMは元の揺れない行先を描かなくなります。
+
+        RTMBodyMotion.renderRollsigns(entity, pass);
+        GL11.glPopMatrix();
+
+    行先の位置・UV・テクスチャ・行先メニューは車両JSONのまま使え、変更は不要です。行先の無い車両で呼んでも影響ありません。
+    RTMUではRTMU独自の種別幕も対象です。ある環境で代理描画できない場合は、1回だけ記録してRTMの元の描画に戻します（揺れませんが消えません）。
+
+(5) サーバースクリプトや車両JSONの変更は不要です。
 
 【English】
 (1) In the vehicle render script (the file named by rendererPath in the vehicle JSON), add this one line after the importPackage block:
@@ -160,7 +178,16 @@ Also included: "サンプル_Example/全パラメータ参考_MOTION_TUNING_Full
         }
     }
 
-(4) No changes to the server script or vehicle JSON are needed.
+(4) (Recommended for JSON rollsigns) RTM draws the vehicle JSON rollsigns outside the render script, so by default they do not move with the body.
+    Add one line before glPopMatrix(); the module then draws the rollsigns inside the body pose and RTM stops drawing its unmoved copy:
+
+        RTMBodyMotion.renderRollsigns(entity, pass);
+        GL11.glPopMatrix();
+
+    Positions, UVs, the texture and the destination menu all come from the vehicle JSON unchanged; calling it on a vehicle without rollsigns does nothing.
+    On RTMU, RTMU's own type signs are included. If the redraw cannot run on some setup, the module logs once and hands drawing back to RTM (unmoved, but never missing).
+
+(5) No changes to the server script or vehicle JSON are needed.
 
 ======================================================================
 4. 調整參數 / パラメータ調整 / Tuning

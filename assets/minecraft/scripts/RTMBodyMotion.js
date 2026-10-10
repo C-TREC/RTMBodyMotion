@@ -1,5 +1,5 @@
 //=============================================================================
-// RTM 車輛搖晃 JS 模組 v1.0 / RTM車両動揺JSモジュール v1.0 / RTM VEHICLE BODY-MOTION JS MODULE v1.0
+// RTM 車輛搖晃 JS 模組 v1.1 / RTM車両動揺JSモジュール v1.1 / RTM VEHICLE BODY-MOTION JS MODULE v1.1
 //=============================================================================
 // 製作：C-TREC & 月島重工 / 制作：C-TREC & 月島重工 / Made by C-TREC & 月島重工
 // 授權：可自由使用、修改與再發布；使用時須在列車的 readme 中標明「使用了 C-TREC & 月島重工 製作的晃動 JS」。詳見 ライセンス_License.txt。 /
@@ -1406,6 +1406,77 @@ function motionApplyPose(entity, partialTick) {
 	GL11.glTranslated(0.0, -motionConfig.pivotY, 0.0);
 }
 
+// JSON 行先（rollsigns）代畫：與 RTM 的 renderRollsign 相同的 UV 與頂點順序，但畫在目前（已套用晃動姿態）的座標裡。 /
+// JSON行先（rollsigns）の代理描画：RTMのrenderRollsignと同じUVと頂点順で、現在の（揺れの姿勢を適用済みの）座標に描きます。 /
+// Redraw JSON rollsigns with the same UVs and vertex order as RTM's renderRollsign, but in the current (posed) transform.
+var motionRollsignDisabled = false;
+
+function motionRenderRollsigns(entity, pass) {
+	if (pass != 0 || motionRollsignDisabled) return;   // 一般 Pass 每幀必定執行，只在這裡畫一次 / 通常Passは毎フレーム必ず実行されるため、ここで1回だけ描きます / The normal pass always runs, so draw once there.
+	try {
+		motionDrawRollsigns(entity);
+	} catch (e) {
+		// 平台不支援時只記錄一次並停用，不影響車體描畫。 / 非対応の環境では1回だけ記録して無効化し、車体の描画には影響させません。 / On an unsupported platform, log once and disable without affecting body rendering.
+		motionRollsignDisabled = true;
+		RTMBodyMotionAdapter.restoreEngineRollsigns();
+		motionLog("rollsign redraw disabled: " + e);
+	}
+}
+
+function motionDrawRollsigns(entity) {
+	var sets = RTMBodyMotionAdapter.readRollsigns(entity);
+	if (sets.length == 0) return;
+	var legacy = !RTMBodyMotionAdapter.isRTMU121();
+	var GLH = Packages.jp.ngt.ngtlib.renderer.GLHelper;
+	var tess = Packages.jp.ngt.ngtlib.renderer.NGTTessellator.instance;
+	// 一般 Pass 可能只讓不透明像素通過；畫行先時改回 RTM 畫行先時的 alpha 判定，畫完還原。 / 通常Passは不透明ピクセルのみ通す場合があるため、行先を描く間だけRTMの行先描画時のalpha判定に戻し、描画後に復元します。 / The normal pass may pass only opaque pixels, so use RTM's rollsign alpha test while drawing and restore it afterwards.
+	var alphaFunc = 0, alphaRef = 0.0;
+	if (legacy) {
+		alphaFunc = GL11.glGetInteger(GL11.GL_ALPHA_TEST_FUNC);
+		alphaRef = GL11.glGetFloat(GL11.GL_ALPHA_TEST_REF);
+		GL11.glAlphaFunc(GL11.GL_GREATER, 0.1);
+	}
+	try {
+		for (var s = 0; s < sets.length; ++s) {
+			var set = sets[s];
+			RTMBodyMotionAdapter.bindRollsignTexture(set.texture);
+			for (var i = 0; i < set.panels.length; ++i) {
+				var panel = set.panels[i];
+				// RTM 的設定名稱與效果相反：disableLighting 為 false 時，行先自己發光。 / RTMの設定名と効果は逆で、disableLightingがfalseのとき行先が自発光します。 / RTM's flag is inverted: when disableLighting is false the sign is self-lit.
+				if (!panel.disableLighting) { GLH.disableLighting(); GLH.setLightmapMaxBrightness(); }
+				var f0 = (panel.vMax - panel.vMin) / set.count;
+				var f1 = panel.doAnimation ? set.animation : set.index;
+				var v0 = panel.vMin + f0 * f1, v1 = panel.vMin + f0 * (f1 + 1.0);
+				tess.startDrawingQuads();
+				try {
+					for (var q = 0; q < panel.quads.length; ++q) {
+						var p = panel.quads[q];
+						var nx = 0.0, ny = 0.0, nz = 0.0;
+						if (set.offset > 0.0) {
+							var ax = p[2][0] - p[3][0], ay = p[2][1] - p[3][1], az = p[2][2] - p[3][2];
+							var bx = p[1][0] - p[3][0], by = p[1][1] - p[3][1], bz = p[1][2] - p[3][2];
+							nx = ay * bz - az * by; ny = az * bx - ax * bz; nz = ax * by - ay * bx;
+							var len = Math.sqrt(nx * nx + ny * ny + nz * nz);
+							if (len > 1.0e-8) { nx *= set.offset / len; ny *= set.offset / len; nz *= set.offset / len; }
+							else { nx = ny = nz = 0.0; }
+						}
+						tess.addVertexWithUV(p[3][0] + nx, p[3][1] + ny, p[3][2] + nz, panel.uMin, v0);
+						tess.addVertexWithUV(p[2][0] + nx, p[2][1] + ny, p[2][2] + nz, panel.uMin, v1);
+						tess.addVertexWithUV(p[1][0] + nx, p[1][1] + ny, p[1][2] + nz, panel.uMax, v1);
+						tess.addVertexWithUV(p[0][0] + nx, p[0][1] + ny, p[0][2] + nz, panel.uMax, v0);
+					}
+				} finally {
+					tess.draw();          // 一定要結束繪製，否則 RTM 之後使用同一個 Tessellator 會出錯 / 必ず描画を終えます。終えないとRTMが同じTessellatorを使う時にエラーになります / Always finish, or RTM's later use of the same Tessellator fails.
+					if (!panel.disableLighting) GLH.enableLighting();
+				}
+			}
+		}
+	} finally {
+		RTMBodyMotionAdapter.restoreAfterRollsign();
+		if (legacy) GL11.glAlphaFunc(alphaFunc, alphaRef);
+	}
+}
+
 //=============================================================================
 // 模組入口：供主描畫流程使用 / モジュール入口：主描画処理用 / MODULE FACADE: USED BY THE MAIN RENDER PATH
 //=============================================================================
@@ -1465,9 +1536,13 @@ var MotionModules = {
 //=============================================================================
 var RTMBodyMotion = {
 	// 模組版本 / モジュールのバージョン / Module version.
-	version: "1.0",
+	version: "1.1",
 	// 在 glPushMatrix() 之後、描畫車體零件之前呼叫；轉向架由 RTM 另外描畫，不受影響。 / glPushMatrix()の後、車体部品を描画する前に呼びます。台車はRTMが別に描画するため影響しません。 / Call after glPushMatrix() and before rendering body parts; bogies are rendered separately by RTM and are unaffected.
 	applyPose: function (entity, partialTick) { motionApplyPose(entity, partialTick); },
+	// 在 applyPose 之後、glPopMatrix() 之前呼叫：由模組在晃動姿態裡畫車輛 JSON 的行先（rollsigns，RTMU 另含種別幕），並讓 RTM 不再畫原本不晃的那份。 /
+	// applyPoseの後、glPopMatrix()の前に呼びます。車両JSONの行先（rollsigns、RTMUは種別幕も）をモジュールが揺れの姿勢の中で描き、RTMが元の揺れない行先を描かないようにします。 /
+	// Call after applyPose and before glPopMatrix(): the module draws the vehicle JSON rollsigns (plus RTMU type signs) inside the body pose and stops RTM drawing its unmoved copy.
+	renderRollsigns: function (entity, pass) { motionRenderRollsigns(entity, pass); },
 	// 取得目前姿態 {roll, sway, pitch, shift, bounce}（角度為度、位移為公尺）。 / 現在の姿勢{roll, sway, pitch, shift, bounce}（角度は度、変位はm）を取得します。 / Get the current pose {roll, sway, pitch, shift, bounce} (angles in degrees, offsets in metres).
 	getPose: function (entity, partialTick) { return motionGetPose(entity, partialTick); },
 	// 發光 Pass 前後呼叫：深度往前推一點並關閉深度寫入，避免發光貼圖與一般貼圖在同一面競爭深度。 / 発光Passの前後で呼びます。深度をわずかに手前へ寄せ深度書込を止め、発光テクスチャと通常テクスチャの深度競合を防ぎます。 / Call around the emissive pass: nudges depth forward and disables depth writes so emissive and normal textures on the same face do not z-fight.

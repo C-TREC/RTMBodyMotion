@@ -57,6 +57,10 @@ function render(entity, pass, par3) {
 			RTMBodyMotion.endEmissivePass(emissive);
 		}
 	}
+	// 車輛 JSON 的行先（rollsigns）：由模組在晃動姿態裡代畫，RTM 就不再畫原本不晃的那份；沒有行先的車輛呼叫也不影響。 /
+	// 車両JSONの行先（rollsigns）：モジュールが揺れの姿勢の中で代わりに描き、RTMは元の揺れない行先を描かなくなります。行先の無い車両で呼んでも影響ありません。 /
+	// Vehicle JSON rollsigns: the module redraws them inside the body pose and RTM stops drawing its unmoved copy; harmless on vehicles without rollsigns.
+	RTMBodyMotion.renderRollsigns(entity, pass);
 
 	GL11.glPopMatrix();
 	// 不想跟著晃的零件請在 glPopMatrix() 之後描畫。 / 揺らしたくない部品はglPopMatrix()の後に描画します。 / Render parts that should not move after glPopMatrix().

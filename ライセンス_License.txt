@@ -1,6 +1,6 @@
-RTM 車輛搖晃 JS 模組 v1.0（RTMBodyMotion）— 授權條款
-RTM車両動揺JSモジュール v1.0（RTMBodyMotion）— ライセンス
-RTM Vehicle Body-Motion JS Module v1.0 (RTMBodyMotion) — License
+RTM 車輛搖晃 JS 模組 v1.1（RTMBodyMotion）— 授權條款
+RTM車両動揺JSモジュール v1.1（RTMBodyMotion）— ライセンス
+RTM Vehicle Body-Motion JS Module v1.1 (RTMBodyMotion) — License
 
 製作 / 制作 / Made by：C-TREC & 月島重工
 
@@ -31,6 +31,6 @@ RTM Vehicle Body-Motion JS Module v1.0 (RTMBodyMotion) — License
 ----------------------------------------------------------------------
 readme 署名範例（可直接複製） / readme記載例（そのままコピー可） / Example readme credit (copy as is)
 
-  車體晃動：使用了 C-TREC & 月島重工 製作的晃動 JS（RTMBodyMotion v1.0）
-  車体動揺：C-TREC & 月島重工 制作の動揺JS（RTMBodyMotion v1.0）を使用
-  Body motion: uses the body-motion JS (RTMBodyMotion v1.0) made by C-TREC & 月島重工
+  車體晃動：使用了 C-TREC & 月島重工 製作的晃動 JS（RTMBodyMotion v1.1）
+  車体動揺：C-TREC & 月島重工 制作の動揺JS（RTMBodyMotion v1.1）を使用
+  Body motion: uses the body-motion JS (RTMBodyMotion v1.1) made by C-TREC & 月島重工

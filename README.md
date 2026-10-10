@@ -1,4 +1,4 @@
-# RTMBodyMotion v1.0
+# RTMBodyMotion v1.1
 
 ![Minecraft](https://img.shields.io/badge/Minecraft-1.12.2-44cc11) ![Forge](https://img.shields.io/badge/Forge-1.12.2--14.23.5.2855-e0712b) ![RealTrainMod](https://img.shields.io/badge/RealTrainMod-2.4.24-007ec6)<br>
 ![Minecraft](https://img.shields.io/badge/Minecraft-1.7.10-44cc11) ![Forge](https://img.shields.io/badge/Forge-1.7.10-e0712b) ![RealTrainMod](https://img.shields.io/badge/RealTrainMod-KaizPatchX-007ec6)<br>
@@ -42,6 +42,7 @@ RTM 車輛搖晃 JS 模組 / RTM車両動揺JSモジュール / Vehicle body-mot
 1. 把 `assets/minecraft/scripts/` 的兩個檔案複製到列車包的 `assets/minecraft/scripts/`。
 2. 在描畫腳本載入模組，並在 `render()` 裡呼叫 `RTMBodyMotion.applyPose(entity, par3)`（見 `サンプル_Example/`）。
 3. 要調整效果時定義 `MOTION_TUNING`，只寫要改的項目；未寫的項目使用預設值。
+4. 車輛 JSON 有行先（rollsigns）時，在 `glPopMatrix()` 之前加上 `RTMBodyMotion.renderRollsigns(entity, pass)`，行先就會跟著車體一起晃（v1.1 起）。
 
 詳細步驟見 `導入説明_InstallationGuide.txt`。
 
@@ -60,7 +61,7 @@ RTM 車輛搖晃 JS 模組 / RTM車両動揺JSモジュール / Vehicle body-mot
 
 可自由使用、修改與再發布（包含放入自己的列車包）。使用本模組（含修改版）的列車，須在該列車的 readme 標明：
 
-> 車體晃動：使用了 C-TREC & 月島重工 製作的晃動 JS（RTMBodyMotion v1.0）
+> 車體晃動：使用了 C-TREC & 月島重工 製作的晃動 JS（RTMBodyMotion v1.1）
 
 全文見 [`ライセンス_License.txt`](ライセンス_License.txt)。
 
@@ -96,6 +97,7 @@ RealTrainModの車両の車体描画にサスペンションの揺れを加え�
 1. `assets/minecraft/scripts/` の2ファイルを車両パックの `assets/minecraft/scripts/` にコピーします。
 2. 描画スクリプトでモジュールを読み込み、`render()` 内で `RTMBodyMotion.applyPose(entity, par3)` を呼びます（`サンプル_Example/` 参照）。
 3. 調整する場合は `MOTION_TUNING` を定義し、変更する項目だけ書きます。書かない項目は既定値を使います。
+4. 車両JSONに行先（rollsigns）がある場合は、`glPopMatrix()` の前に `RTMBodyMotion.renderRollsigns(entity, pass)` を加えると、行先も車体と一緒に揺れます（v1.1から）。
 
 詳しくは `導入説明_InstallationGuide.txt` を参照してください。
 
@@ -114,7 +116,7 @@ RealTrainModの車両の車体描画にサスペンションの揺れを加え�
 
 自由に使用・改変・再配布できます（自作の車両パックへの同梱を含む）。本モジュール（改変版を含む）を使用する車両は、readmeに次のように明記してください。
 
-> 車体動揺：C-TREC & 月島重工 制作の動揺JS（RTMBodyMotion v1.0）を使用
+> 車体動揺：C-TREC & 月島重工 制作の動揺JS（RTMBodyMotion v1.1）を使用
 
 全文は [`ライセンス_License.txt`](ライセンス_License.txt) を参照してください。
 
@@ -150,6 +152,7 @@ Adds suspension motion to how RealTrainMod train bodies are rendered: outward le
 1. Copy the two files in `assets/minecraft/scripts/` into your vehicle pack's `assets/minecraft/scripts/`.
 2. Load the module in your render script and call `RTMBodyMotion.applyPose(entity, par3)` inside `render()` (see `サンプル_Example/`).
 3. To tune the effect, define `MOTION_TUNING` with only the entries you change; everything else uses the defaults.
+4. If the vehicle JSON has rollsigns, add `RTMBodyMotion.renderRollsigns(entity, pass)` before `glPopMatrix()` so the destination signs move with the body (since v1.1).
 
 See `導入説明_InstallationGuide.txt` for details.
 
@@ -168,6 +171,6 @@ Download: [latest release](https://github.com/C-TREC/RTMBodyMotionPreviewer/rele
 
 Free to use, modify and redistribute, including bundling with your own vehicle pack. Any vehicle that uses this module (including modified versions) must state in its readme:
 
-> Body motion: uses the body-motion JS (RTMBodyMotion v1.0) made by C-TREC & 月島重工
+> Body motion: uses the body-motion JS (RTMBodyMotion v1.1) made by C-TREC & 月島重工
 
 See [`ライセンス_License.txt`](ライセンス_License.txt) for the full text.

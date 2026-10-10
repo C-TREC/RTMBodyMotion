@@ -1,5 +1,5 @@
 //=============================================================================
-// RTM 車體搖擺平台適配器 v1.0 / RTM車体動揺プラットフォームアダプター v1.0 / RTM BODY-MOTION PLATFORM ADAPTER v1.0
+// RTM 車體搖擺平台適配器 v1.1 / RTM車体動揺プラットフォームアダプター v1.1 / RTM BODY-MOTION PLATFORM ADAPTER v1.1
 //=============================================================================
 // 製作：C-TREC & 月島重工 / 制作：C-TREC & 月島重工 / Made by C-TREC & 月島重工
 // 授權：可自由使用、修改與再發布；使用時須在列車的 readme 中標明「使用了 C-TREC & 月島重工 製作的晃動 JS」。詳見 ライセンス_License.txt。 /
@@ -467,6 +467,186 @@ var RTMBodyMotionAdapter = (function () {
 		return fallback;
 	}
 
+	//-------------------------------------------------------------------------
+	// JSON 行先（rollsigns）：RTM 在描畫腳本之外、用沒有晃動的座標畫行先，因此改由模組在晃動姿態裡代畫。
+	// 第一次讀到某個車輛設定時，取出它的行先資料自己保存，並把記憶體中的設定清空，讓 RTM 不再畫原本那份；JSON 檔案不會被修改，行先選單照常運作。 /
+	// JSON行先（rollsigns）：RTMは描画スクリプトの外で揺れていない座標に行先を描くため、モジュールが揺れの姿勢の中で代わりに描きます。
+	// ある車両設定を初めて読んだときに行先データを取り出して保持し、メモリ上の設定を空にしてRTMが元の行先を描かないようにします。JSONファイルは変更せず、行先メニューもそのまま使えます。 /
+	// JSON rollsigns: RTM draws them outside the render script with the unmoved transform, so the module redraws them inside the body pose.
+	// The first time a vehicle config is seen, its rollsign data is copied out and the in-memory config is emptied so RTM stops drawing its own copy; the JSON file is untouched and the destination menu keeps working.
+	//   1.12.2（RTM 2.4.x）：getResourceState().getResourceSet() 的 rollsignTexture 與 getConfig().rollsigns／rollsignNames
+	//   1.7.10（KaizPatchX）：getModelSet() 的同名欄位
+	//   RTMU 1.21.1：VehicleRegistry 的車輛定義（rollsigns 為唯讀清單，以 Java 反射換成空清單）；另含 RTMU 追加的種別幕（typeSigns）
+	var rollsignCache = null;                              // 車輛設定 → 取出的行先資料（第一次使用時才建立，載入時不需要 Java）
+	var rollsignFailed = {};                               // 讀取失敗的平台路徑，避免每幀重試並刷記錄
+	var rollsignRestores = [];                             // 還原 RTM 原本行先設定的函式（代畫失敗時使用）
+
+	function rollsignCacheMap() {
+		if (rollsignCache == null) rollsignCache = new java.util.IdentityHashMap();
+		return rollsignCache;
+	}
+
+	function javaIntOr(fn, fallback) {
+		try { var v = Number(fn()); return isFinite(v) ? v : fallback; } catch (e) { return fallback; }
+	}
+
+	// 把一組面板轉成 JS 物件：{uMin, uMax, vMin, vMax, quads:[[x,y,z]×4], doAnimation, disableLighting}
+	function convertPanel(uv, pos, doAnimation, disableLighting) {
+		if (uv == null || uv.length < 4 || pos == null) return null;
+		var quads = [];
+		for (var q = 0; q < pos.length; ++q) {
+			var quad = pos[q];
+			if (quad == null || quad.length < 4) continue;
+			var pts = [];
+			for (var k = 0; k < 4; ++k) pts.push([Number(quad[k][0]), Number(quad[k][1]), Number(quad[k][2])]);
+			quads.push(pts);
+		}
+		return { uMin: Number(uv[0]), uMax: Number(uv[1]), vMin: Number(uv[2]), vMax: Number(uv[3]),
+			quads: quads, doAnimation: !!doAnimation, disableLighting: !!disableLighting };
+	}
+
+	function legacyModelSet(raw) {
+		var readers = isLegacy1710() ?
+			[function () { return raw.getModelSet(); }, function () { return raw.getResourceState().getResourceSet(); }] :
+			[function () { return raw.getResourceState().getResourceSet(); }, function () { return raw.getModelSet(); }];
+		for (var i = 0; i < readers.length; ++i) {
+			try { var set = readers[i](); if (set != null) return set; } catch (e) {}
+		}
+		return null;
+	}
+
+	function legacyRollsignData(raw) {
+		var modelSet = legacyModelSet(raw);
+		if (modelSet == null) return null;
+		var cfg = modelSet.getConfig();
+		if (cfg == null) return null;
+		var data = rollsignCacheMap().get(cfg);
+		if (data == null) {
+			var signs = cfg.rollsigns;
+			if (signs == null || signs.length == 0 || modelSet.rollsignTexture == null) return null;
+			var panels = [];
+			for (var i = 0; i < signs.length; ++i) {
+				var p = convertPanel(signs[i].uv, signs[i].pos, signs[i].doAnimation, signs[i].disableLighting);
+				if (p != null) panels.push(p);
+			}
+			var names = cfg.rollsignNames;
+			data = [{ texture: modelSet.rollsignTexture, count: Math.max(1, names == null ? 1 : names.length), panels: panels,
+				stateId: 8, offset: 0.0 }];
+			// 換成同型別的空陣列：RTM 的 renderRollsign 迴圈從此不畫任何面板
+			cfg.rollsigns = java.lang.reflect.Array.newInstance(signs.getClass().getComponentType(), 0);
+			rollsignRestores.push(function () { cfg.rollsigns = signs; });
+			rollsignCache.put(cfg, data);
+		}
+		return data;
+	}
+
+	function rtmuRollsignData(raw) {
+		var def = null;
+		var Registry = Packages.com.portofino.realtrainmodunofficial.vehicle.VehicleRegistry;
+		try { def = Registry.getById(raw.getModelName()); } catch (e1) {}
+		if (def == null) { try { def = Registry.getById(raw.getVehicleId()); } catch (e2) {} }
+		if (def == null) return null;
+		var data = rollsignCacheMap().get(def);
+		if (data == null) {
+			var Loader = Packages.com.portofino.realtrainmodunofficial.client.model.MqoModelLoader;
+			data = [];
+			var groups = [
+				{ panels: def.getRollsigns(), names: def.getRollsignNames(), texture: def.getRollsignTexture(), stateId: 8 },
+				{ panels: def.getTypeSigns(), names: def.getTypeSignNames(), texture: def.getTypeSignTexture(), stateId: 12, type: true }
+			];
+			for (var g = 0; g < groups.length; ++g) {
+				var grp = groups[g];
+				if (grp.panels == null || grp.panels.isEmpty() || grp.texture == null || String(grp.texture).trim() == "") continue;
+				var panels = [];
+				for (var i = 0; i < grp.panels.size(); ++i) {
+					var r = grp.panels.get(i);
+					var p = convertPanel(r.uv(), r.pos(), r.doAnimation(), r.disableLighting());
+					if (p != null) panels.push(p);
+				}
+				// RTMU 與 RTMU 自己的畫法相同：沿法線外推 1.5 mm，避免與車體表面深度競爭
+				data.push({ texture: Loader.resolvePackTexture(def.getPackName(), grp.texture),
+					count: Math.max(1, grp.names == null || grp.names.isEmpty() ? 1 : grp.names.size()),
+					panels: panels, stateId: grp.stateId, type: !!grp.type, offset: 0.0015 });
+			}
+			// 唯讀清單無法清空，以 Java 反射把私有欄位換成空清單；種別幕有公開的 setter
+			var field = def.getClass().getDeclaredField("rollsigns");
+			field.setAccessible(true);
+			var originalSigns = field.get(def);
+			var typeNames = def.getTypeSignNames(), typeTexture = def.getTypeSignTexture(), originalTypes = def.getTypeSigns();
+			field.set(def, java.util.Collections.emptyList());
+			if (!originalTypes.isEmpty()) def.setTypeSign(typeNames, typeTexture, java.util.Collections.emptyList());
+			rollsignRestores.push(function () {
+				field.set(def, originalSigns);
+				if (!originalTypes.isEmpty()) def.setTypeSign(typeNames, typeTexture, originalTypes);
+			});
+			rollsignCache.put(def, data);
+		}
+		return data;
+	}
+
+	// 列車狀態（8＝行先、12＝RTMU 種別）：1.7.10 與 RTMU 為 getTrainStateData(id)，1.12.2 為 getVehicleState(TrainState.getStateType(id))；先試本平台的寫法。 /
+	// 列車状態（8＝行先、12＝RTMU種別）：1.7.10とRTMUはgetTrainStateData(id)、1.12.2はgetVehicleState(TrainState.getStateType(id))。自平台の書き方を先に試します。 /
+	// Train state (8 = destination, 12 = RTMU type sign): getTrainStateData(id) on 1.7.10 and RTMU, getVehicleState(TrainState.getStateType(id)) on 1.12.2; the native form is tried first.
+	function readTrainState(raw, id) {
+		var viaData = function () { return raw.getTrainStateData(id); };
+		var viaState = function () { return raw.getVehicleState(Packages.jp.ngt.rtm.entity.train.util.TrainState.getStateType(id)); };
+		var order = (isLegacy1710() || isRTMU121()) ? [viaData, viaState] : [viaState, viaData];
+		for (var i = 0; i < order.length; ++i) {
+			var v = javaIntOr(order[i], NaN);
+			if (isFinite(v)) return v;
+		}
+		return 0;
+	}
+
+	// 回傳本車要畫的行先組：[{texture, count, panels, index, animation, offset}]；沒有行先或無法讀取時回傳空陣列。
+	function readRollsigns(entity) {
+		var raw = unwrapEntity(entity);
+		var path = isRTMU121() ? "rtmu" : "legacy";
+		if (rollsignFailed[path]) return [];
+		var data = null;
+		try {
+			data = isRTMU121() ? rtmuRollsignData(raw) : legacyRollsignData(raw);
+		} catch (e) {
+			restoreEngineRollsigns();
+			try { NGTLog.debug("[BodyMotion] rollsign redraw disabled on " + path + ": " + e); } catch (e2) {}
+			return [];
+		}
+		if (data == null) return [];
+		var out = [];
+		for (var i = 0; i < data.length; ++i) {
+			var d = data[i];
+			var rawIndex = readTrainState(raw, d.stateId);
+			var index = ((rawIndex % d.count) + d.count) % d.count;
+			// 種別幕沒有幕回し動畫，doAnimation 也直接顯示 index（與 RTMU 相同）
+			var animation = d.type ? index : javaIntOr(function () { return raw.getRollsignAnimation(); }, index);
+			out.push({ texture: d.texture, count: d.count, panels: d.panels, index: index, animation: animation, offset: d.offset });
+		}
+		return out;
+	}
+
+	// 代畫失敗時呼叫：把清空的設定全部還原，讓 RTM 照原本的方式畫行先（不晃，但不會消失）。 /
+	// 代理描画に失敗したときに呼びます。空にした設定をすべて戻し、RTMが元の方法で行先を描くようにします（揺れませんが消えません）。 /
+	// Called when the redraw fails: restore every emptied config so RTM draws the rollsigns its own way (unmoved, but not missing).
+	function restoreEngineRollsigns() {
+		for (var i = 0; i < rollsignRestores.length; ++i) {
+			try { rollsignRestores[i](); } catch (e) {}
+		}
+		rollsignRestores = [];
+		if (rollsignCache != null) rollsignCache.clear();
+		rollsignFailed[isRTMU121() ? "rtmu" : "legacy"] = true;
+	}
+
+	function bindRollsignTexture(texture) {
+		Packages.jp.ngt.ngtlib.util.NGTUtilClient.bindTexture(texture);
+	}
+
+	// RTMU 的腳本描畫是先記錄再重播：綁過貼圖後要明確回到模型的預設貼圖，否則之後的零件會沿用行先貼圖
+	function restoreAfterRollsign() {
+		if (isRTMU121()) {
+			try { Packages.jp.ngt.ngtlib.util.NGTUtilClient.bindTexture(null); } catch (e) {}
+		}
+	}
+
 	function normalizePartialTick(partialTick) {
 		if (partialTick !== null && partialTick !== undefined) {
 			var direct = Number(partialTick);
@@ -511,6 +691,10 @@ var RTMBodyMotionAdapter = (function () {
 		isSwitchCore: isSwitchCore,
 		getSwitchCore: getSwitchCore,
 		readDataMapDouble: readDataMapDouble,
+		readRollsigns: readRollsigns,
+		bindRollsignTexture: bindRollsignTexture,
+		restoreAfterRollsign: restoreAfterRollsign,
+		restoreEngineRollsigns: restoreEngineRollsigns,
 		normalizePartialTick: normalizePartialTick
 	};
 })();
